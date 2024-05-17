@@ -3,13 +3,13 @@
 --Requires your installation to be modified so that require, io and lfs are not sanitized. If you do not un sanitize require,
 --you can use a dummy require function called before the script runs:
 
---[[
-function require(text) --stops the attempt to translate localised town names /AppleEvangelist 3/5/2024
- local fakefunction = {}
- fakefunction.translate = function(input) return input end
- return fakefunction
-end
---]]
+
+--function require(text) --stops the attempt to translate localised town names /AppleEvangelist 3/5/2024
+ --local fakefunction = {}
+ --fakefunction.translate = function(input) return input end
+ --return fakefunction
+--end
+
 
 -- Caucasus, Falklands, MarianaIslands, Normandy, PersianGulf, Syria, Kola supported
 -- at time of writing "Sinai" not supported because it has no published towns file in the terrain.
