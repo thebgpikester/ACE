@@ -1,6 +1,15 @@
 --Another Campaign Engine by Pikey 2023 v1.2
 --Requires MOOSE.lua to be loaded first. 
---Requires your installation to be modified so that io and lfs are not sanitized.
+--Requires your installation to be modified so that require, io and lfs are not sanitized. If you do not un sanitize require,
+--you can use a dummy require function called before the script runs:
+
+--[[
+function require(text) --stops the attempt to translate localised town names /AppleEvangelist 3/5/2024
+ local fakefunction = {}
+ fakefunction.translate = function(input) return input end
+ return fakefunction
+end
+--]]
 
 -- Caucasus, Falklands, MarianaIslands, Normandy, PersianGulf, Syria, Kola supported
 -- at time of writing "Sinai" not supported because it has no published towns file in the terrain.
@@ -56,7 +65,7 @@ local ZoneContestedBorder=ZONE:New("Contested")
 if debug then ZoneContestedBorder:DrawZone() end
 
 --Error check
-if lfs then --this is required, remove it if you are  heavily editing and importing twos in some other way.
+if lfs then --this is required, remove it if you are heavily editing and importing towns in some other way.
 
 --FUNCTIONS
 
