@@ -1,5 +1,6 @@
+IMPORTANT!!! You must edit the trigger which contains the path to your DCS installation from the mission editor!!
 # ACE
-Another Campaign Engine by Pikey 2024 v1.0
+Another Campaign Engine by Pikey 2024 v1.1 (May 20th)
 
 ## CREDITS
 MOOSE Team, forefathers of MOOSE and those that pioneered.
@@ -9,7 +10,7 @@ AppleEvangelist for [STRATEGO])https://flightcontrol-master.github.io/MOOSE_DOCS
 
 ## REQUIRES
 Requires DEVELOPMENT [MOOSE.lua](https://github.com/FlightControl-Master/MOOSE_INCLUDE/blob/develop/Moose_Include_Static/Moose.lua) to be loaded first. 
-Requires your installation to be modified so that io and lfs are not sanitized.
+Requires your installation to be modified so that require, io, os, and lfs are not sanitized.
 Demo requires Syria terrain.
 
 ## SUPPORT
@@ -32,6 +33,9 @@ Note, this is not meant to be an upstanding example of how to write code, its ju
 - Deploys AI groups to each side and in the conflict zone, launches attacks, fights, captures, etc, does CHIEF-things.
 
 ## HOW TO USE
+IMPORTANT!!! You must edit the trigger which contains the path to your installation from the mission editor.
+IMPORTANT!!! You must desanitize the santized lua environemnts of io, os, require and lfs in missionscripting.lua
+
 The only supported configuration is via the supplied demo. It's released as working. After that use it as you like, in whole or in part, on your own. The script requires a single zone called 'zone' that is the limit of the area, three zones for sides, Blue Border, Contested and Red Border.
 A RedBase zone and a Blue Base zone to be placed at each extremity of the play area.
 A 'Blue Spawn' and a 'Red Spawn' zones for ground troops ot appear at.
