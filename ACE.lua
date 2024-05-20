@@ -1,15 +1,6 @@
---Another Campaign Engine by Pikey 2023 v1.2
+--Another Campaign Engine by Pikey 2023 v1.3 (May 2024)
 --Requires MOOSE.lua to be loaded first. 
---Requires your installation to be modified so that require, io and lfs are not sanitized. If you do not un sanitize require,
---you can use a dummy require function called before the script runs:
-
-
---function require(text) --stops the attempt to translate localised town names /AppleEvangelist 3/5/2024
- --local fakefunction = {}
- --fakefunction.translate = function(input) return input end
- --return fakefunction
---end
-
+--Requires your installation to be modified so that require, io, and lfs are not sanitized.
 
 -- Caucasus, Falklands, MarianaIslands, Normandy, PersianGulf, Syria, Kola supported
 -- at time of writing "Sinai" not supported because it has no published towns file in the terrain.
@@ -37,37 +28,41 @@
 --It will begin to try to capture empty zones or send attack waves to occupied zones.
 --There is a defensive CAP
 ----------------------------
-local debug=true -- true turns on the CHIEF tactical printout and opszones visibility. You can always edit things manually.
+
 local mapname = UTILS.GetDCSMap()
-local folder = "D:\\DCS World OB" --edit this to be correct for your main DS installation. Use double backslashes \\
 local path = "\\Mods\\terrains\\"..mapname.."\\Map\\towns.lua" --NO NEED TO EDIT
-local mappath = folder..path
+local mappath = ace.folder..path
 local sFile = mapname.."Towns.lua"
 local savepath = lfs.writedir().."\\"..sFile
 local zone =  ZONE:New('zone') --name of the inclusion zone
 local minDistanceToRoad = 500 -- The distance in Metres that any road has to be, in order to count as a zone else zone is discarded as being worthless
-local scanRadius = 700 -- 500=30seconds, 800=75seconds (less is faster, but relies on density rather than size)
+local scanRadius = 1000 -- 500=30seconds, 800=75seconds (less is faster, but relies on density rather than size)
 local zoneRadius = 2000 -- When STRATEGO draws the zone, the radius of the medium sized zone is this in M
 local lowThreshold = 10 -- Read the TownsTable and put a manual number roughly seperating the bottom third
 local highThreshold = 20 -- Read the TownsTable and put a manual number roughly seperating the top third 
 local railmultiplication = 2 --multiplication factor of importance if there is nearby railway
-local TownMax=50 --Maximum number of towns to be kept. There are usually many more.
+local TownMax = 30 --Maximum number of towns to be kept. There are usually many more.
 local map = {} --leave it
 local BlueBase= "BlueBase"--name of zone on map with furthest extent behind Blue lines 
 local RedBase = "RedBase"--name of zone on map with furthest extent behind Red lines
 local RedSams = 2 --The number of red sams to be randomly placed in any red zones
 local BlueSams = 2 --the number of blue sams to be randomly placed in any blue zones
 local ZoneRedBorder=ZONE:New("Red Border")
-if debug then ZoneRedBorder:DrawZone() end
+if ace.debug then ZoneRedBorder:DrawZone() end
 local ZoneBlueBorder=ZONE:New("Blue Border")
-if debug then ZoneBlueBorder:DrawZone() end
+if ace.debug then ZoneBlueBorder:DrawZone() end
 local ZoneContestedBorder=ZONE:New("Contested")
-if debug then ZoneContestedBorder:DrawZone() end
+if ace.debug then ZoneContestedBorder:DrawZone() end
 
 --Error check
-if lfs then --this is required, remove it if you are heavily editing and importing towns in some other way.
+if lfs then --this is required, remove it if you are  heavily editing and importing twos in some other way.
 
 --FUNCTIONS
+function require(text) --stops the attempt to translate localised town names /AppleEvangelist 3/5/2024
+ local fakefunction = {}
+ fakefunction.translate = function(input) return input end
+ return fakefunction
+end
 
 function write(data, file)
   local File = io.open(file, "w")
@@ -254,7 +249,7 @@ write(Str, savepath) --save to disk
 --Launch STRATEGO
  Nodes = STRATEGO:New("Nodes",coalition.side.BLUE,10)
  Nodes:SetCaptureOptions(1, 0)
- Nodes:SetDebug(false, debug, false)
+ Nodes:SetDebug(false, ace.debug, false)
  Nodes:SetStrategoZone(zone)
  --Nodes:SetUsingBudget(true, 500)
  Nodes:Start()
@@ -265,7 +260,7 @@ write(Str, savepath) --save to disk
  end
  
  --DEBUG
-if debug then UTILS.PrintTableToLog(TownTable, 1) end
+if ace.debug then UTILS.PrintTableToLog(TownTable, 1) end
 
 
 
@@ -340,11 +335,13 @@ local blueair2=SQUADRON:New("bluecas", 24, "3rd Strike Squadron")
 blueair2:SetGrouping(1)
 blueair2:AddMissionCapability({AUFTRAG.Type.CAS, AUFTRAG.Type.CASENHANCED, AUFTRAG.Type.RECON, AUFTRAG.Type.GROUNDATTACK}, 100)
 blueair2:SetAttribute(GROUP.Attribute.AIR_FIGHTER, GROUP.Attribute.AIR_BOMBER) 
+blueair2:SetTurnoverTime(20, 30)
 
-local blueair3=SQUADRON:New("bluecap", 24, "4th Air Superiority Squadron")
+local blueair3=SQUADRON:New("bluecap", 8, "4th Air Superiority Squadron")
 blueair3:SetGrouping(1)
 blueair3:AddMissionCapability({AUFTRAG.Type.CAP, AUFTRAG.Type.INTERCEPT,AUFTRAG.Type.GCICAP }, 100)
 blueair3:SetAttribute(GROUP.Attribute.AIR_FIGHTER) 
+blueair3:SetTurnoverTime(20, 30)
 
 local BlueWing2=AIRWING:New("blue airwing2", "blue airwing2")
 
@@ -363,7 +360,7 @@ local BlueChief=CHIEF:New(coalition.side.BLUE, blueAgents)
 BlueChief:AddBorderZone(ZoneBlueBorder)
 BlueChief:AddConflictZone(ZoneContestedBorder)
 BlueChief:AddAttackZone(ZoneRedBorder)
-if debug then BlueChief:SetTacticalOverviewOn() end
+if ace.debug then BlueChief:SetTacticalOverviewOn() end
 BlueChief:SetLimitMission(3, AUFTRAG.Type.CASENHANCED)
 BlueChief:SetLimitMission(3, AUFTRAG.Type.CAPTUREZONE)
 BlueChief:SetLimitMission(2, AUFTRAG.Type.INTERCEPT)
@@ -375,8 +372,8 @@ BlueChief:AddBrigade(BlueBrigade)
 BlueChief:AddAirwing(BlueWing)
 BlueChief:AddAirwing(BlueWing2)
 BlueChief:AllowGroundTransport()
-BlueChief:SetStrategy(CHIEF.Strategy.OFFENSIVE)
-BlueChief:__Start(10)
+BlueChief:SetStrategy(CHIEF.Strategy.AGGRESSIVE)
+BlueChief:__Start(5)
 
 -- EMPTY custom resources
 local BlueResourceListEmpty, BlueResourceInf=BlueChief:CreateResource( AUFTRAG.Type.ONGUARD, 1, 1, GROUP.Attribute.GROUND_INFANTRY)
@@ -406,7 +403,7 @@ rPlatoon2:AddMissionCapability({AUFTRAG.Type.OPSTRANSPORT, AUFTRAG.Type.TROOPTRA
 local rPlatoon3=PLATOON:New("redIFV", 27, "rPlatoon IFV")
 :SetGrouping(1)
 rPlatoon3:SetAttribute(GROUP.Attribute.GROUND_IFV)
-rPlatoon3:AddMissionCapability({AUFTRAG.Type.ONGUARD, AUFTRAG.Type.PATROLZONE, AUFTRAG.Type.ONGUARD, AUFTRAG.Type.CAPTUREZONE, AUFTRAG.Type.PATROLZONE, AUFTRAG.Type.RECON, AUFTRAG.Type.GROUNDATTACK},80)
+rPlatoon3:AddMissionCapability({AUFTRAG.Type.ONGUARD, AUFTRAG.Type.CAPTUREZONE, AUFTRAG.Type.PATROLZONE, AUFTRAG.Type.RECON, AUFTRAG.Type.GROUNDATTACK, AUFTRAG.Type.ARMOREDGUARD, AUFTRAG.Type.ARMORATTACK},80)
 
 local rPlatoon4=PLATOON:New("redtank", 35, "rPlatoon tank")
 :SetGrouping(3)
@@ -452,12 +449,13 @@ local redair2=SQUADRON:New("redcas", 24, "3rd red Strike Squadron")
 redair2:SetGrouping(1)
 redair2:SetAttribute(GROUP.Attribute.AIR_FIGHTER, GROUP.Attribute.AIR_BOMBER)
 redair2:AddMissionCapability({AUFTRAG.Type.CASENHANCED, AUFTRAG.Type.CAS, AUFTRAG.Type.RECON, AUFTRAG.Type.GROUNDATTACK, AUFTRAG.Type.STRIKE}, 100)
+redair2:SetTurnoverTime(20, 30)
 
-local redair3=SQUADRON:New("redcap", 24, "4th red Air Superiority Squadron")
+local redair3=SQUADRON:New("redcap", 8, "4th red Air Superiority Squadron")
 redair3:SetGrouping(1)
 redair3:SetAttribute(GROUP.Attribute.AIR_FIGHTER)
 redair3:AddMissionCapability({AUFTRAG.Type.CAP, AUFTRAG.Type.INTERCEPT,AUFTRAG.Type.GCICAP }, 100)
-
+redair3:SetTurnoverTime(20, 30)
 local RedWing2=AIRWING:New("red airwing2", "red airwing2")
 
 RedWing:AddSquadron(redair)
@@ -477,7 +475,7 @@ local RedChief=CHIEF:New(coalition.side.RED, rAgents)
 RedChief:AddBorderZone(ZoneRedBorder)
 RedChief:AddConflictZone(ZoneContestedBorder)
 RedChief:AddAttackZone(ZoneBlueBorder)
-if debug then RedChief:SetTacticalOverviewOn() end
+if ace.debug then RedChief:SetTacticalOverviewOn() end
 RedChief:SetLimitMission(3, AUFTRAG.Type.CASENHANCED)
 RedChief:SetLimitMission(3, AUFTRAG.Type.CAS)
 RedChief:SetLimitMission(3, AUFTRAG.Type.CAPTUREZONE)
@@ -490,41 +488,24 @@ RedChief:AddBrigade(RedBrigade)
 RedChief:AddAirwing(RedWing)
 RedChief:AddAirwing(RedWing2)
 RedChief:AllowGroundTransport() --deprecated?
-RedChief:SetStrategy(CHIEF.Strategy.OFFENSIVE)
-RedChief:__Start(14)
+RedChief:SetStrategy(CHIEF.Strategy.AGGRESSIVE)
+RedChief:__Start(10)
 
 -- EMPTY custom resources
 local RedResourceListEmpty, ResourceRedInf=RedChief:CreateResource( AUFTRAG.Type.ONGUARD, 1, 1, GROUP.Attribute.GROUND_INFANTRY)
 RedChief:AddTransportToResource(ResourceRedInf, 1, 1,  GROUP.Attribute.AIR_TRANSPORTHELO)
 
 -- OCCUPIED custom resources
-local RedResourceListFull, ResourceParasR=RedChief:CreateResource(AUFTRAG.Type.ONGUARD, 1, 1, GROUP.Attribute.GROUND_INFANTRY)
+local RedResourceListFull, ResourceParasR=RedChief:CreateResource(AUFTRAG.Type.PATROLZONE, 1, 1, GROUP.Attribute.GROUND_INFANTRY)
 local ResourceRecon=RedChief:AddToResource(RedResourceListFull, AUFTRAG.Type.CAPTUREZONE, 1, 1, GROUP.Attribute.GROUND_IFV)
 local ResourceTank=RedChief:AddToResource(RedResourceListFull, AUFTRAG.Type.CAPTUREZONE, 1, 1, GROUP.Attribute.GROUND_TANK)
 local ResourceHeli=RedChief:AddToResource(RedResourceListFull, AUFTRAG.Type.CAS, 1, 1, GROUP.Attribute.AIR_ATTACKHELO)
 RedChief:AddTransportToResource(ResourceParasR, 1, 1, {GROUP.Attribute.GROUND_APC})
 
 
---MAKE STRATEGIC ZONES and apply priority
---Distance from base to base
-local BlueBaseCoord=ZONE:FindByName(BlueBase):GetCoordinate(0)
-local RedBaseCoord=ZONE:FindByName(RedBase):GetCoordinate(0)
-local BaseSep=BlueBaseCoord:Get2DDistance(RedBaseCoord)
+
+
 local opszones=SET_OPSZONE:New():FilterPrefixes("POI-"):FilterOnce()
---TURN ALL OF THE OPS ZONES INTO STRATEGIC ZONES
-opszones:ForEachZone(function(ops)
-local BlueDist=ops:GetCoordinate():Get2DDistance(BlueBaseCoord)
-local RedDist=ops:GetCoordinate():Get2DDistance(RedBaseCoord)
-local name=ops:GetName()
-local JustTheTownName=string.match(name, "-(.*)")
-local prio = round(TownTable[JustTheTownName],0)
-local BlueImp = round((BlueDist/BaseSep)*100,1)  -- a 1-100 number with 0 being at the home base and 100 being the enemy base.
-local RedImp = round((RedDist/BaseSep)*100,1)  -- a 1-100 number with 0 being at the home base and 100 being the enemy base.
-BlueChief:AddStrategicZone(ops, prio, BlueImp, BlueResourceListOccupied, BlueResourceListEmpty) 
-RedChief:AddStrategicZone(ops, prio, RedImp, RedResourceListFull, RedResourceListEmpty)
-end)
-
-
 --FILL ZONES WITH CHEIF GROUPS AT START
 opszones:ForEachZone(function(ops)
    local coord=ops:GetCoordinate()
@@ -534,23 +515,29 @@ opszones:ForEachZone(function(ops)
     local Rmission=AUFTRAG:NewONGUARD(coord)
     Rmission:SetTeleport(true)
     RedChief:AddMission(Rmission)
+    RedChief.commander:CheckMissionQueue()
    end
    
    if ZoneBlueBorder:IsCoordinateInZone(coord) then
     local Bmission=AUFTRAG:NewONGUARD(coord)
     Bmission:SetTeleport(true)
     BlueChief:AddMission(Bmission)
+    BlueChief.commander:CheckMissionQueue()
    end
       
    if ZoneContestedBorder:IsCoordinateInZone(coord) then
     --Add blue units
+    --[[
     local mission=AUFTRAG:NewPATROLZONE(ops:GetZone(), 4, nil, "On Road")
     mission:SetTeleport(true)
     BlueChief:AddMission(mission)
+    BlueChief.commander:CheckMissionQueue()
     --Also add red units
     local mission2=AUFTRAG:NewPATROLZONE(ops:GetZone(), 4, nil, "On Road")
     mission2:SetTeleport(true)
     RedChief:AddMission(mission2)
+    RedChief.commander:CheckMissionQueue()
+    --]]
    end
 
 end)
@@ -564,6 +551,7 @@ opszones:ForEachZone(function(ops)
          local mission=AUFTRAG:NewAIRDEFENSE(ops:GetZone())
          mission:SetTeleport(true)
          RedChief:AddMission(mission)
+         RedChief.commander:CheckMissionQueue()
          RedSams=RedSams-1
       end
   
@@ -572,6 +560,7 @@ opszones:ForEachZone(function(ops)
          local mission=AUFTRAG:NewAIRDEFENSE(ops:GetZone())
          mission:SetTeleport(true)
          BlueChief:AddMission(mission)
+         BlueChief.commander:CheckMissionQueue()
          BlueSams=BlueSams-1
       end
    end
@@ -618,8 +607,29 @@ local AllPlanes=SET_UNIT:New():FilterCategories("helicopter"):FilterActive(true)
     end
 
   end)
-end, {}, 1, 300) --300=5 mins. Starts after 60 seconds, no randomisation
+end, {}, 1, 500) --300=5 mins. Starts after 60 seconds, no randomisation
 
+--DELAY FOR 5 mins
+--MAKE STRATEGIC ZONES and apply priority
+SCHEDULER:New( nil, function()
+--Distance from base to base
+local BlueBaseCoord=ZONE:FindByName(BlueBase):GetCoordinate(0)
+local RedBaseCoord=ZONE:FindByName(RedBase):GetCoordinate(0)
+local BaseSep=BlueBaseCoord:Get2DDistance(RedBaseCoord)
+
+--TURN ALL OF THE OPS ZONES INTO STRATEGIC ZONES
+opszones:ForEachZone(function(ops)
+local BlueDist=ops:GetCoordinate():Get2DDistance(BlueBaseCoord)
+local RedDist=ops:GetCoordinate():Get2DDistance(RedBaseCoord)
+local name=ops:GetName()
+local JustTheTownName=string.match(name, "-(.*)")
+local prio = round(TownTable[JustTheTownName],0)
+local BlueImp = round((BlueDist/BaseSep)*100,1)  -- a 1-100 number with 0 being at the home base and 100 being the enemy base.
+local RedImp = round((RedDist/BaseSep)*100,1)  -- a 1-100 number with 0 being at the home base and 100 being the enemy base.
+BlueChief:AddStrategicZone(ops, prio, BlueImp, BlueResourceListOccupied, BlueResourceListEmpty) 
+RedChief:AddStrategicZone(ops, prio, RedImp, RedResourceListFull, RedResourceListEmpty)
+end)
+end, {}, 600)
  --[[
 GROUP.Attribute.AIR_FIGHTER
 GROUP.Attribute.AIR_BOMBER
